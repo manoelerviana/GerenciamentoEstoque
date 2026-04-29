@@ -4,7 +4,7 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from .Locais import LocalEstoqueManager
+from Locais import LocalEstoqueManager
 
 DB_FILE = Path(__file__).resolve().parent / 'dados_produtos.json'
 
