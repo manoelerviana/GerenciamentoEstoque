@@ -1,4 +1,11 @@
 from pathlib import Path
+import os
+
+if os.getenv("STREAMLIT_DEBUG") == "1":
+    import debugpy
+    debugpy.listen(("localhost", 8501))
+    print("Aguardando depurador no localhost:8501...")
+    debugpy.wait_for_client()
 
 import streamlit as st
 
