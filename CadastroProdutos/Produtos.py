@@ -56,15 +56,11 @@ class EstoqueManager:
 
     def _load(self) -> None:
         if not self.db_path.exists():
-            self._data: Dict[str, Any] = {'produtos': [], 'categorias': [], 'locais': []}
+            self._data = {'produtos': [], 'categorias': [], 'locais': []}
             self._save()
         else:
             raw_text = self.db_path.read_text(encoding='utf-8')
-            self._data = (
-                json.loads(raw_text)
-                if raw_text.strip()
-                else {'produtos': [], 'categorias': [], 'locais': []}
-            )
+            self._data = json.loads(raw_text) if raw_text.strip() else {'produtos': [], 'categorias': [], 'locais': []}
             self._data.setdefault('produtos', [])
             self._data.setdefault('categorias', [])
             self._data.setdefault('locais', [])
@@ -72,70 +68,22 @@ class EstoqueManager:
 
     def _save(self) -> None:
         self._data['locais'] = self.locais.listar_locais_dicts()
-        self.db_path.write_text(
-            json.dumps(self._data, indent=2, ensure_ascii=False),
-            encoding='utf-8',
-        )
-
-    # ------------------------------------------------------------------ #
-    #  PRODUTOS                                                            #
-    # ------------------------------------------------------------------ #
+        self.db_path.write_text(json.dumps(self._data, indent=2, ensure_ascii=False), encoding='utf-8')
 
     def criar_produto(self, produto: Produto) -> None:
-        for item in self._data.get('produtos', []):
-            if item.get('codigo') == produto.codigo:
-                raise ValueError(f'Produto com código "{produto.codigo}" já existe.')
-            if produto.codigobarra and item.get('codigobarra') == produto.codigobarra:
-                raise ValueError(f'Código de barras "{produto.codigobarra}" já cadastrado.')
-            if produto.ean and item.get('ean') == produto.ean:
-                raise ValueError(f'EAN "{produto.ean}" já cadastrado.')
-
+        if self.consultar_produto(produto.codigo) is not None:
+            raise ValueError(f'Produto com código "{produto.codigo}" já existe.')
         self._data['produtos'].append(produto.to_dict())
         self._save()
 
-    def listar_produtos(self, incluir_inativos: bool = False) -> List[Produto]:
-        produtos = self._data.get('produtos', [])
-        if not incluir_inativos:
-            produtos = [p for p in produtos if p.get('ativo', True)]
-        return [Produto.from_dict(item) for item in produtos]
+    def listar_produtos(self) -> List[Produto]:
+        return [Produto.from_dict(item) for item in self._data.get('produtos', [])]
 
     def consultar_produto(self, codigo: str) -> Optional[Produto]:
-        produto = next(
-            (item for item in self._data.get('produtos', []) if item.get('codigo') == codigo),
-            None,
-        )
+        produto = next((item for item in self._data.get('produtos', []) if item.get('codigo') == codigo), None)
         return Produto.from_dict(produto) if produto else None
 
-    def buscar_produtos(
-        self,
-        nome: Optional[str] = None,
-        categoria: Optional[str] = None,
-        local_id: Optional[str] = None,
-        incluir_inativos: bool = False,
-    ) -> List[Produto]:
-        resultados = self._data.get('produtos', [])
-
-        if not incluir_inativos:
-            resultados = [p for p in resultados if p.get('ativo', True)]
-
-        if nome:
-            termo = nome.lower()
-            resultados = [
-                p for p in resultados if termo in p.get('nome', '').lower()
-            ]
-        if categoria:
-            resultados = [
-                p for p in resultados
-                if p.get('categoria', '').lower() == categoria.lower()
-            ]
-        if local_id:
-            resultados = [p for p in resultados if p.get('local_id') == local_id]
-
-        return [Produto.from_dict(item) for item in resultados]
-
     def atualizar_produto(self, codigo: str, novos_dados: Dict[str, Any]) -> None:
-        novos_dados.pop('codigo', None)
-
         for index, item in enumerate(self._data.get('produtos', [])):
             if item.get('codigo') == codigo:
                 item.update(novos_dados)
@@ -144,32 +92,13 @@ class EstoqueManager:
                 return
         raise ValueError(f'Produto com código "{codigo}" não encontrado.')
 
-    def remover_produto(self, codigo: str, fisico: bool = False) -> None:
+    def remover_produto(self, codigo: str) -> None:
         produtos = self._data.get('produtos', [])
-
-        if fisico:
-            atualizados = [p for p in produtos if p.get('codigo') != codigo]
-            if len(atualizados) == len(produtos):
-                raise ValueError(f'Produto com código "{codigo}" não encontrado.')
-            self._data['produtos'] = atualizados
-        else:
-            for index, item in enumerate(produtos):
-                if item.get('codigo') == codigo:
-                    item['ativo'] = False
-                    self._data['produtos'][index] = item
-                    self._save()
-                    return
+        atualizados = [item for item in produtos if item.get('codigo') != codigo]
+        if len(atualizados) == len(produtos):
             raise ValueError(f'Produto com código "{codigo}" não encontrado.')
-
+        self._data['produtos'] = atualizados
         self._save()
-
-    def reativar_produto(self, codigo: str) -> None:
-        """Reativa um produto previamente desativado."""
-        self.atualizar_produto(codigo, {'ativo': True})
-
-    # ------------------------------------------------------------------ #
-    #  CATEGORIAS                                                          #
-    # ------------------------------------------------------------------ #
 
     def criar_categoria(self, categoria: Categoria) -> None:
         if any(item.get('nome') == categoria.nome for item in self._data.get('categorias', [])):
@@ -181,7 +110,5 @@ class EstoqueManager:
         return [Categoria.from_dict(item) for item in self._data.get('categorias', [])]
 
     def obter_local(self, local_id: Optional[str]) -> Optional[Dict[str, Any]]:
-        if not local_id:
-            return None
         local = self.locais.obter_local(local_id)
         return local.to_dict() if local else None
