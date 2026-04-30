@@ -2,8 +2,8 @@ from pathlib import Path
 
 import streamlit as st
 
-from CadastroProdutos.Locais import LocalEstoque
-from CadastroProdutos.Produtos import Categoria, EstoqueManager, Produto
+from Locais import LocalEstoque
+from Produtos import Categoria, EstoqueManager, Produto
 
 DATA_PATH = Path(__file__).resolve().parent / 'dados_produtos.json'
 
