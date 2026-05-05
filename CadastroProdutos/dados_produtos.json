@@ -1,5 +1,42 @@
 {
-  "produtos": [],
+  "produtos": [
+    {
+      "codigo": "15151555151",
+      "nome": "Abacate",
+      "descricao": "Fruta",
+      "peso": 1.0,
+      "codigobarra": "78965412365",
+      "embalagem": "BC",
+      "composicao_embalagem": "Plástico",
+      "data_validade": "2026-04-30",
+      "dimensoes": "12x45",
+      "categoria": "asfdfasdfsaf",
+      "dun": "asdfasds",
+      "ean": "dfasdf ss",
+      "quantidade": 788,
+      "local_id": null,
+      "preco_unitario": 255.0,
+      "ativo": true
+    },
+    {
+      "codigo": "sdfsfadfasdaf",
+      "nome": "asdfasdfasdfasdfsa",
+      "descricao": "sadfsafdsafas",
+      "peso": 0.00758858,
+      "codigobarra": "58855885585",
+      "embalagem": "ukfyukr",
+      "composicao_embalagem": "jtjetyjethwrge",
+      "data_validade": "2026-04-30",
+      "dimensoes": "egqergqerg",
+      "categoria": "qfgq",
+      "dun": "wefwef",
+      "ean": "qwefwqfg",
+      "quantidade": 12,
+      "local_id": null,
+      "preco_unitario": 12558.0,
+      "ativo": true
+    }
+  ],
   "categorias": [],
   "locais": []
 }
